@@ -14,14 +14,22 @@
 # define FT_MALLOC_H
 
 # include <sys/mman.h>
+# include <sys/time.h>
 # include <sys/resource.h>
 # include <unistd.h>
+# include <stdio.h>
 
-typedef		struct s_zone
+typedef struct	s_zone_alloc
 {
 	void	*tiny;
+	void	*tinynow;
 	void	*small;
-};
+	void	*smallnow;
+	int		nballoctiny;
+	int		nballocsmall;
+	int		tinysize;
+	int		smallsize;
+}				t_zone_alloc;
 
 void	ft_free(void *ptr);
 void	*ft_malloc(size_t size);
