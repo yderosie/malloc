@@ -10,7 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "ft_malloc.h"
+
 void	ft_free(void *ptr)
 {
-	munmap(*ptr, (size_t)getpagesize());
+	printf("%d\n", munmap(ptr, 10));
 }

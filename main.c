@@ -12,26 +12,42 @@
 
 #include "ft_malloc.h"
 
+#include <stdio.h>
+
 int main()
 {
 	char *test;
 	char *test2;
+	char *test3;
 
 	test = (char*)ft_malloc(sizeof(char)*10);
-	test2 = (char*)ft_malloc(sizeof(char)*10);
+	test2 = (char*)ft_malloc(sizeof(char)*20);
+	test3 = (char*)ft_malloc(sizeof(char)*30);
 	if (test == NULL)
-		printf("test = %p\n", test);
+		printf("NULL test main = %p\n", test);
 	if (test2 == NULL)
-		printf("test2 = %p\n", test2);
-	printf("test = %p\n", &test);
-	printf("test2 = %p\n", &test2);
-	//return 0;
-	test[0] = 'q';
-	test = "a\0";
-	test2 = "testa\0";
+		printf("test2 main = %p\n", test2);
+	printf("test main = %p %p\n", &test, test);
+	printf("test2 main = %p %p\n", &test2, test2);
+	test[0] = 't';
+	test[1] = 'e';
+	test[2] = 's';
+	test[3] = 't';
+	test[4] = '1';
+	test[5] = '\0';
+	printf("test main = %p %p %s\n", &test, test, test);
+	printf("test2 main = %p %p %s\n", &test2, test2, test2);
+	test2[0] = 't';
+	test2[1] = 'e';
+	test2[2] = 's';
+	test2[3] = 't';
+	test2[4] = '2';
+	test2[5] = '\0';
 	test2[6] = 'q';
 	test2[7] = '\0';
-	printf("test = %p\n", &test);
-	printf("test2 = %p %s\n", &test2, test2);
+	printf("test2 main = %p %s\n", &test2, test2);
+	printf("test main = %p %p %s\n", &test, test, test);
+	ft_free(test);
+	ft_free(test2);
 	return 0;
 }
