@@ -27,34 +27,24 @@ void	print_list(t_block *block)
 	}
 }
 
-void	new_zone(t_alloc **zone)
+void	new_zone(t_zone **zone)
 {
-	t_alloc	*new;
-	t_alloc	*move;
+	t_zone	*new;
+	t_zone	*move;
 	size_t	size_zone;
 
 	move = (*zone);
-	size_zone = sizeof(t_alloc);
+	size_zone = sizeof(t_zone);
 	while (move->next != NULL)
 		move = move->next;
 	new = move + size_zone;
-	printf("%d %d\n", TINY, SMALL);
-	new->tiny = mmap(NULL, TINY, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	new->zone = mmap(NULL, TINY, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 		perror("ERROR:");
-	new->small = mmap(NULL, SMALL, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-		perror("ERROR:");
-	new->tinynow = new->tiny;
-	new->smallnow = new->small;
-	new->tinyblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	new->zonenow = new->zone;
+	new->zoneblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	perror("ERROR:");
-	new->smallblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-	perror("ERROR:");
-	new->largeblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-	perror("ERROR:");
-	new->nballoctiny = 0;
-	new->nballocsmall = 0;
-	new->tinysize = 0;
-	new->smallsize = 0;
+	new->nballoczone = 0;
+	new->zonesize = 0;
 	new->next = NULL;
 	move->next = new;
 }
@@ -110,116 +100,112 @@ void	check_list(t_block *block, size_t size, void *ptr)
 		set_segment(block, size, ptr);
 }
 
-void	*add_small_alloc(t_alloc **zone, size_t size)
+void	*add_small_alloc(t_zone **zone, size_t size)
 {
 	void	*ptr;
-	if (control_size(size, (*zone)->smallsize, SMALL))
+	if (control_size(size, (*zone)->zonesize, SMALL))
 	{
-		ptr = (*zone)->smallnow;
-		check_list((*zone)->smallblock, size, ptr);
-		(*zone)->smallnow = (*zone)->smallnow + size;
-		(*zone)->smallsize += size;
-		(*zone)->nballocsmall++;
+		ptr = (*zone)->zonenow;
+		check_list((*zone)->zoneblock, size, ptr);
+		(*zone)->zonenow = (*zone)->zonenow + size;
+		(*zone)->zonesize += size;
+		(*zone)->nballoczone++;
 	}
 	return (ptr);
 }
 
-void	*add_tiny_alloc(t_alloc **zone, size_t size)
+void	*add_tiny_alloc(t_zone **zone, size_t size)
 {
 	void	*ptr;
-	if (control_size(size, (*zone)->tinysize, TINY))
+	if (control_size(size, (*zone)->zonesize, TINY))
 	{
-		ptr = (*zone)->tinynow;
-		check_list((*zone)->tinyblock, size, ptr);
-		(*zone)->tinynow = (*zone)->tinynow + size;
-		(*zone)->tinysize += size;
-		(*zone)->nballoctiny++;
+		ptr = (*zone)->zonenow;
+		check_list((*zone)->zoneblock, size, ptr);
+		(*zone)->zonenow = (*zone)->zonenow + size;
+		(*zone)->zonesize += size;
+		(*zone)->nballoczone++;
 	}
 	return (ptr);
 }
 
-void	*select_zone(t_alloc **zone, size_t size)
+void	*select_zone(t_zone **zonetiny, t_zone **zonesmall, size_t size)
 {
 	void *ptr;
 
 	if (size > (SMALL / 100))
 	{
 		ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-		check_list((*zone)->largeblock, size, ptr);
+		//check_list((*zone)->largeblock, size, ptr);
 	}
-	else if (size < (SMALL / 100) && size > (TINY / 100) && (size + (*zone)->smallsize) < SMALL)
-	{
-		
-		else
-
-	}
-	else if (size < (TINY / 100) && (size + (*zone)->tinysize) < TINY)
-	{
-		
-	}
+	else if (size < (SMALL / 100) && size > (TINY / 100) && (size + (*zonesmall)->zonesize) < SMALL)
+		ptr = add_small_alloc(zonesmall, size);
+	else if (size < (TINY / 100) && (size + (*zonetiny)->zonesize) < TINY)
+		ptr = add_tiny_alloc(zonetiny, size);
 	return (ptr);
 }
 
-t_alloc	**init_zone(void)
+t_zone	**init_zone(int i)
 {
-	static t_alloc *zone;
+	static t_zone *zonetiny;
+	static t_zone *zonesmall;
+	static int first = 0;
 
-	zone = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 
-	return (&zone);
+	if (first == 0)
+	{
+		zonetiny = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+		zonesmall = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+		first = 1;
+	}
+	printf("/*****   tiny = %p small = %p *****/\n", zonetiny, zonesmall);
+
+	if (i == 1)
+		return (&zonetiny);
+	else
+		return(&zonesmall);
 }
 
-t_alloc	*init(void)
+t_zone	**init(size_t size)
 {
-	t_alloc **zone;
+	t_zone **zone;
 
-	zone = init_zone();
+	if (size == TINY)
+		zone = init_zone(1);
+	else
+		zone = init_zone(2);
 	printf("%d %d\n", TINY, SMALL);
-	(*zone)->tiny = mmap(NULL, TINY, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	(*zone)->zone = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 		perror("ERROR:");
-	(*zone)->small = mmap(NULL, SMALL, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-		perror("ERROR:");
-	printf("%s\n", "TEST");
-	(*zone)->tinynow = (*zone)->tiny;
-	(*zone)->smallnow = (*zone)->small;
-	(*zone)->tinyblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	(*zone)->zonenow = (*zone)->zone;
+	(*zone)->zoneblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	perror("ERROR:");
-	(*zone)->smallblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-	perror("ERROR:");
-	(*zone)->largeblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-	perror("ERROR:");
-	(*zone)->nballoctiny = 0;
-	(*zone)->nballocsmall = 0;
-	(*zone)->tinysize = 0;
-	(*zone)->smallsize = 0;
-	printf("tiny init == %p %p\n", (*zone)->tiny, (*zone)->tinynow);
-	printf("small init == %p %p\n", (*zone)->small, (*zone)->smallnow);
+	(*zone)->nballoczone = 0;
+	(*zone)->zonesize = 0;
+	printf("tiny init == %p %p\n", (*zone)->zone, (*zone)->zonenow);
 	(*zone)->next = NULL;
-	return ((*zone));
+	return ((zone));
 }
 
 void	*ft_malloc(size_t size)
 {
 	void		*ptr;
-	t_alloc		**zone;
+	t_zone		**zonetiny;
+	t_zone		**zonesmall;
 	static int 	first = 0;
 
 	ptr = NULL;
 	if (first == 0)
 	{
-		*zone = init();
+		zonetiny = init(TINY);
+		zonesmall = init(SMALL);
 		first = 1;
 	}
-	else
-	{
-		first++;
-	}
-	printf("tiny malloc == %p %p\n", (*zone)->tiny, (*zone)->tinynow);
-	printf("small malloc == %p %p\n", (*zone)->small, (*zone)->smallnow);
+	printf("tiny malloc == %p %p\n", (*zonetiny)->zone, (*zonetiny)->zonenow);
+	printf("small malloc == %p %p\n", (*zonesmall)->zone, (*zonesmall)->zonenow);
 	
 	printf("ptr = %p\n", ptr);
-	ptr = select_zone(zone, size);
-	printf("nb = %d",first);
-	print_list((*zone)->tinyblock);
+	ptr = select_zone(zonetiny, zonesmall, size);
+	print_list((*zonetiny)->zoneblock);
+	print_list((*zonesmall)->zoneblock);
 	return (ptr);
 }
