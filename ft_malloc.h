@@ -40,7 +40,7 @@ typedef struct	s_zone
 	t_block			*zoneblock;
 	int				nballoczone;
 	int				zonesize;
-	struct s_small	*next;
+	struct s_zone	*next;
 }				t_zone;
 
 /*

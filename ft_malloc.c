@@ -27,7 +27,7 @@ void	print_list(t_block *block)
 	}
 }
 
-void	new_zone(t_zone **zone)
+void	new_zone(t_zone **zone, size_t size)
 {
 	t_zone	*new;
 	t_zone	*move;
@@ -38,7 +38,7 @@ void	new_zone(t_zone **zone)
 	while (move->next != NULL)
 		move = move->next;
 	new = move + size_zone;
-	new->zone = mmap(NULL, TINY, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	new->zone = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 		perror("ERROR:");
 	new->zonenow = new->zone;
 	new->zoneblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
@@ -52,9 +52,7 @@ void	new_zone(t_zone **zone)
 int 	control_size(size_t size,size_t size_now, size_t maxsize)
 {
 	if (size_now + size > maxsize)
-	{
 		return (0);
-	}
 	else
 		return (1);
 }
@@ -157,7 +155,6 @@ t_zone	**init_zone(int i)
 		zonesmall = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 		first = 1;
 	}
-	printf("/*****   tiny = %p small = %p *****/\n", zonetiny, zonesmall);
 
 	if (i == 1)
 		return (&zonetiny);
