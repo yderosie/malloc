@@ -23,6 +23,7 @@
 
 # define TINY 2097152
 # define SMALL 16777216
+# define LEN_LIST 4096
 
 typedef struct	s_block
 {
@@ -38,8 +39,8 @@ typedef struct	s_zone
 	void			*zone;
 	void			*zonenow;
 	t_block			*zoneblock;
-	int				nballoczone;
-	int				zonesize;
+	size_t			nballoczone;
+	size_t			zonesize;
 	struct s_zone	*next;
 }				t_zone;
 

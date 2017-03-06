@@ -39,9 +39,9 @@ void	new_zone(t_zone **zone, size_t size)
 		move = move->next;
 	new = move + size_zone;
 	new->zone = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-		perror("ERROR:");
-	new->zonenow = new->zone;
-	new->zoneblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	perror("ERROR:");
+	new->zonenow = NULL/* mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);*/;
+	new->zoneblock = NULL;
 	perror("ERROR:");
 	new->nballoczone = 0;
 	new->zonesize = 0;
@@ -62,11 +62,18 @@ void	set_segment(t_block *block, size_t size, void *ptr)
 	size_t block_struct;
 	t_block *b;
 	t_block *move;
+	int		i;
 
 	move = block;
+	i == 0;
 	block_struct = sizeof(t_block);
 	while (move->next != NULL)
+	{
 		move = move->next;
+		i++;
+	}
+	if (block_struct * i > LEN_LIST)
+		b = mmap(NULL, LEN_LIST, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	b = move + block_struct;
 	b->size = size;
 	b->ptr = ptr;
@@ -88,40 +95,38 @@ void	add_first_segment(t_block *block, size_t size, void *ptr)
 	b->next = NULL;
 }
 
-void	check_list(t_block *block, size_t size, void *ptr)
+void	add_block_list(t_block *block, size_t size, void *ptr)
 {
 	if (block->first == 0)
-	{
 		add_first_segment(block, size, ptr);
-	}
 	else
 		set_segment(block, size, ptr);
 }
 
-void	*add_small_alloc(t_zone **zone, size_t size)
+void	*add_block_alloc(t_zone **zone, size_t size, size_t zonesize)
 {
 	void	*ptr;
-	if (control_size(size, (*zone)->zonesize, SMALL))
-	{
-		ptr = (*zone)->zonenow;
-		check_list((*zone)->zoneblock, size, ptr);
-		(*zone)->zonenow = (*zone)->zonenow + size;
-		(*zone)->zonesize += size;
-		(*zone)->nballoczone++;
-	}
-	return (ptr);
-}
+	t_zone	*move;
 
-void	*add_tiny_alloc(t_zone **zone, size_t size)
-{
-	void	*ptr;
-	if (control_size(size, (*zone)->zonesize, TINY))
+	move = (*zone);
+	while (move != NULL)
 	{
-		ptr = (*zone)->zonenow;
-		check_list((*zone)->zoneblock, size, ptr);
-		(*zone)->zonenow = (*zone)->zonenow + size;
-		(*zone)->zonesize += size;
-		(*zone)->nballoczone++;
+		if (control_size(size, move->zonesize, zonesize))
+		{
+			ptr = move->zonenow;
+			add_block_list((*zone)->zoneblock, size, ptr);
+			move->zonenow = move->zonenow + size;
+			move->zonesize += size;
+			move->nballoczone++;
+			break ;
+		}
+		else
+			move = move->next;
+	}
+	if (move == NULL)
+	{
+		new_zone(zone, zonesize);
+		ptr = add_block_alloc(zone, size, zonesize);
 	}
 	return (ptr);
 }
@@ -135,10 +140,10 @@ void	*select_zone(t_zone **zonetiny, t_zone **zonesmall, size_t size)
 		ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 		//check_list((*zone)->largeblock, size, ptr);
 	}
-	else if (size < (SMALL / 100) && size > (TINY / 100) && (size + (*zonesmall)->zonesize) < SMALL)
-		ptr = add_small_alloc(zonesmall, size);
-	else if (size < (TINY / 100) && (size + (*zonetiny)->zonesize) < TINY)
-		ptr = add_tiny_alloc(zonetiny, size);
+	else if (size < (SMALL / 100) && size > (TINY / 100))
+		ptr = add_block_alloc(zonesmall, size, SMALL);
+	else if (size < (TINY / 100))
+		ptr = add_block_alloc(zonetiny, size, TINY);
 	return (ptr);
 }
 
@@ -148,14 +153,12 @@ t_zone	**init_zone(int i)
 	static t_zone *zonesmall;
 	static int first = 0;
 
-
 	if (first == 0)
 	{
-		zonetiny = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-		zonesmall = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+		zonetiny = mmap(NULL, LEN_LIST, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+		zonesmall = mmap(NULL, LEN_LIST, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 		first = 1;
 	}
-
 	if (i == 1)
 		return (&zonetiny);
 	else
@@ -172,9 +175,9 @@ t_zone	**init(size_t size)
 		zone = init_zone(2);
 	printf("%d %d\n", TINY, SMALL);
 	(*zone)->zone = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-		perror("ERROR:");
+	perror("ERROR:");
 	(*zone)->zonenow = (*zone)->zone;
-	(*zone)->zoneblock = mmap(NULL, 2048, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	(*zone)->zoneblock = mmap(NULL, LEN_LIST, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	perror("ERROR:");
 	(*zone)->nballoczone = 0;
 	(*zone)->zonesize = 0;
@@ -197,9 +200,14 @@ void	*ft_malloc(size_t size)
 		zonesmall = init(SMALL);
 		first = 1;
 	}
+	else
+	{
+		zonetiny = init_zone(1);
+		zonesmall = init_zone(2);
+	}
 	printf("tiny malloc == %p %p\n", (*zonetiny)->zone, (*zonetiny)->zonenow);
 	printf("small malloc == %p %p\n", (*zonesmall)->zone, (*zonesmall)->zonenow);
-	
+
 	printf("ptr = %p\n", ptr);
 	ptr = select_zone(zonetiny, zonesmall, size);
 	print_list((*zonetiny)->zoneblock);
