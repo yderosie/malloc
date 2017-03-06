@@ -19,10 +19,26 @@ int main()
 	char *test;
 	char *test2;
 	char *test3;
+	char *test4;
+	char *test5;
+	char *test6;
+	char *test7;
+	char *test8;
+	char *test9;
+	char *test10;
+	char *test11;
 
 	test = (char*)ft_malloc(sizeof(char)*10);
 	test2 = (char*)ft_malloc(sizeof(char)*20);
 	test3 = (char*)ft_malloc(sizeof(char)*30);
+	test4 = (char*)ft_malloc(sizeof(char)*50);
+	test5 = (char*)ft_malloc(sizeof(char)*60);
+	test6 = (char*)ft_malloc(sizeof(char)*70);
+	test7 = (char*)ft_malloc(sizeof(char)*4096);
+	test8 = (char*)ft_malloc(sizeof(char)*2048);
+	test9 = (char*)ft_malloc(sizeof(char)*5);
+	test10 = (char*)ft_malloc(sizeof(char)*40);
+	test11 = (char*)ft_malloc(sizeof(char)*90);
 	if (test == NULL)
 		printf("NULL test main = %p\n", test);
 	if (test2 == NULL)
@@ -48,6 +64,7 @@ int main()
 	printf("test2 main = %p %s\n", &test2, test2);
 	printf("test main = %p %p %s\n", &test, test, test);
 	ft_free(test);
-	ft_free(test2);
+	ft_free(test8);
+	show_alloc_mem();
 	return 0;
 }

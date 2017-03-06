@@ -12,5 +12,10 @@
 
 void	*ft_realloc(void *ptr, size_t size)
 {
-	
+	void	*new;
+
+	new = ft_malloc(size);
+	ft_memcpy(new, ptr, ft_strlen(ptr))
+	ft_free(ptr);
+	return (new);
 }
