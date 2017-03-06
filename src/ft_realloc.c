@@ -10,12 +10,16 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "ft_malloc.h"
+
 void	*ft_realloc(void *ptr, size_t size)
 {
 	void	*new;
 
+	if (ptr == NULL)
+		return (ptr);
 	new = ft_malloc(size);
-	ft_memcpy(new, ptr, ft_strlen(ptr))
+	ft_memcpy(new, ptr, ft_strlen(ptr));
 	ft_free(ptr);
 	return (new);
 }

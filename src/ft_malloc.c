@@ -149,14 +149,6 @@ void	add_first_segment(t_block *block, size_t size, void *ptr)
 	b->next = NULL;
 }
 
-void	add_block_list(t_block *block, size_t size, void *ptr)
-{
-	if (block->first == 0)
-		add_first_segment(block, size, ptr);
-	else
-		set_segment(block, size, ptr);
-}
-
 void	*add_block_alloc(t_zone **zone, size_t size, size_t zonesize)
 {
 	void	*ptr;
@@ -168,7 +160,7 @@ void	*add_block_alloc(t_zone **zone, size_t size, size_t zonesize)
 		if (control_size(size, move->zonesize, zonesize))
 		{
 			ptr = move->zonenow;
-			add_block_list((*zone)->zoneblock, size, ptr);
+			set_segment(block, size, ptr);
 			move->zonenow = move->zonenow + size;
 			move->zonesize += size;
 			move->nballoczone++;

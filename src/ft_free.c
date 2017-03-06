@@ -56,6 +56,8 @@ void	ft_free(void *ptr)
 	t_zone	**zonesmall;
 	size_t	size;
 
+	if (ptr == NULL)
+		return ;
 	zonetiny = init_zone(1);
 	zonesmall = init_zone(2);
 	size = 0;
