@@ -58,8 +58,8 @@ void	ft_free(void *ptr)
 
 	if (ptr == NULL)
 		return ;
-	zonetiny = init_zone(1);
-	zonesmall = init_zone(2);
+	zonetiny = init_zone_tiny();
+	zonesmall = init_zone_small();
 	size = 0;
 	if (look_list(ptr, (*zonetiny)->zoneblock, (*zonesmall)->zoneblock) == 0)
 	{

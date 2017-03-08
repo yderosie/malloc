@@ -9,7 +9,7 @@ CC=gcc
 
 LIBFT_PATH ?= libft/
 
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -g
 
 SRCS =	src/ft_malloc.c 	\
 		src/ft_realloc.c 	\
