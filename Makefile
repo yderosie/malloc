@@ -35,13 +35,13 @@ MKDIR ?= mkdir
 
 obj/%.o: src/%.c $(INC_FILES)
 	$(MKDIR) -p $(dir $@)
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -fPIC -c $(CFLAGS) $< -o $@
 
 $(LIBFT_PATH)/libft.a:
 	$(MAKE) -C $(LIBFT_PATH)
 
 $(NAME): $(LIBFT_PATH)/libft.a $(OBJS)
-	$(CC) $(CFLAGS) -shared -o $(NAME) $(OBJS) $(LDFLAGS)
+	$(CC) -fPIC $(CFLAGS) -shared -o $(NAME) $(OBJS) $(LDFLAGS)
 	ln -s $(NAME) $(LINKNAME)
 
 clean:

@@ -116,7 +116,6 @@ void	set_segment(t_block *block, size_t size, void *ptr)
 	int		i;
 	int		j;
 
-	//dprintf(1, "START\n");
 	move = block;
 	i = 0;
 	j = 0;
@@ -126,24 +125,19 @@ void	set_segment(t_block *block, size_t size, void *ptr)
 		move = move->next;
 		i++;
 	}
-	//printf("%lu %lu - %d\n",block_struct, (block_struct * i) - (move->nbnewalloc * LEN_LIST), LEN_LIST);
-	if (((block_struct * i + block_struct) - (move->nbnewalloc * LEN_LIST)) > (LEN_LIST))
+	if (((block_struct * i + block_struct) - (move->nbnewalloc * LEN_LIST)) >= (LEN_LIST))
 	{
 		b = mmap(NULL, LEN_LIST, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 		j++;
 	}
 	else
-	{
 		b = (void *)move + block_struct;
-	}
-	//dprintf(1, "INTER\n");
 	b->size = size;
 	b->ptr = ptr;
 	b->free = 0;
 	b->nbnewalloc = move->nbnewalloc + j;
 	b->next = NULL;
 	move->next = b;
-	//dprintf(1, "END\n");
 }
 
 void	add_first_segment(t_block *block, size_t size, void *ptr)
@@ -157,6 +151,22 @@ void	add_first_segment(t_block *block, size_t size, void *ptr)
 	b->nbnewalloc = 0;
 	b->next = NULL;
 }
+void	*free_zone(t_block *block, size_t size)
+{
+	t_block *move;
+
+	move = block;
+	while (move != NULL && move->free == 0)
+	{
+		if (move->size >= size)
+		{
+			move->free = 0;
+			return (move->ptr);
+		}
+		move = move->next;
+	}
+	return (NULL);
+}
 
 void	*add_block_alloc(t_zone **zone, size_t size, size_t zonesize)
 {
@@ -166,10 +176,15 @@ void	*add_block_alloc(t_zone **zone, size_t size, size_t zonesize)
 	move = (*zone);
 	while (move != NULL)
 	{
-		if (control_size(size, move->zonesize, zonesize))
+		if ((ptr = free_zone((*zone)->zoneblock, size))!= NULL)
+		{
+			printf("%s\n", "test");
+			break ;
+		}
+		else if (control_size(size, move->zonesize, zonesize))
 		{
 			ptr = move->zonenow;
-			set_segment(move->zoneblock, size, ptr);
+			set_segment((*zone)->zoneblock, size, ptr);
 			move->zonenow = move->zonenow + size;
 			move->zonesize += size;
 			move->nballoczone++;

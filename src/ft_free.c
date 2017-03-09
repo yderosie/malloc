@@ -67,6 +67,6 @@ void	ft_free(void *ptr)
 		if (size == 0)
 			return ;
 		else
-			printf("%d\n", munmap(ptr, size));
+			munmap(ptr, size);
 	}
 }
