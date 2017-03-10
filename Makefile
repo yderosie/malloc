@@ -13,7 +13,11 @@ CFLAGS = -Wall -Wextra -Werror -g
 
 SRCS =	src/ft_malloc.c 	\
 		src/ft_realloc.c 	\
-		src/ft_free.c
+		src/list.c			\
+		src/print.c			\
+		src/ft_free.c		\
+		src/hexa.c			\
+		src/init.c
 
 INC_FILES = include/ft_malloc.h
 

@@ -12,7 +12,7 @@
 
 #include "ft_malloc.h"
 
-size_t	look_list(void *ptr, t_block *listtiny, t_block *listsmall)
+static size_t	look_list(void *ptr, t_block *listtiny, t_block *listsmall)
 {
 	t_block	*move;
 
@@ -35,7 +35,7 @@ size_t	look_list(void *ptr, t_block *listtiny, t_block *listsmall)
 	return (0);
 }
 
-size_t	large_list(void *ptr, t_block **block)
+static size_t	large_list(void *ptr, t_block **block)
 {
 	t_block *move;
 
@@ -50,7 +50,7 @@ size_t	large_list(void *ptr, t_block **block)
 	return (0);
 }
 
-void	ft_free(void *ptr)
+void			ft_free(void *ptr)
 {
 	t_zone	**zonetiny;
 	t_zone	**zonesmall;

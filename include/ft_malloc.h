@@ -22,8 +22,8 @@
 # include <stdlib.h>
 # include "libft.h"
 
-# define TINY /*4*4096*/2097152
-# define SMALL /*16*4096*/16777216
+# define TINY 2097152
+# define SMALL 16777216
 # define LEN_LIST 4096
 
 typedef struct	s_block
@@ -42,15 +42,23 @@ typedef struct	s_zone
 	t_block			*zoneblock;
 	size_t			nballoczone;
 	size_t			zonesize;
+	int				nbnewalloc;
+	int				v1;
+	int				v2;
 	struct s_zone	*next;
 }				t_zone;
 
-void	ft_free(void *ptr);
-void	*ft_malloc(size_t size);
-void	*ft_realloc(void *ptr, size_t size);
-t_zone	**init_zone_tiny(void);
-t_zone	**init_zone_small(void);
-void	show_alloc_mem(void);
-t_block **init_list_large(void);
+void		ft_free(void *ptr);
+void		*ft_malloc(size_t size);
+void		*ft_realloc(void *ptr, size_t size);
+
+t_zone		**init_zone_tiny(void);
+t_zone		**init_zone_small(void);
+void		show_alloc_mem(void);
+t_block 	**init_list_large(void);
+void		set_block(t_block *block, size_t size, void *ptr);
+void		new_zone(t_zone **zone, size_t size);
+t_zone		**init(size_t size);
+char		*conv_hexa(unsigned long long j);
 
 #endif
